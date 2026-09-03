@@ -1,96 +1,76 @@
 import React, { useState, useEffect } from "react";
-import { Search as SearchIcon, Play } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
+import { Search as SearchIcon, Music } from "lucide-react";
 import { searchTracks } from "../services/spotifyService";
 
 export function Search({ onSelectTrack }) {
-  const [searchParams] = useSearchParams();
-  const initialQuery = searchParams.get("q") || "";
-  
-  const [query, setQuery] = useState(initialQuery);
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const categories = ["Indie Rock", "Shoegaze", "Post-Punk", "Ambient", "Dream Pop", "Ethereal"];
-
   useEffect(() => {
-    if (query.trim().length < 2) {
+    if (!query.trim()) {
       setResults([]);
       return;
     }
 
-    setLoading(true);
     const timer = setTimeout(() => {
-      searchTracks(query).then((data) => {
-        setResults(data || []);
-        setLoading(false);
-      });
-    }, 300);
+      setLoading(true);
+      searchTracks(query)
+        .then((data) => setResults(data || []))
+        .finally(() => setLoading(false));
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [query]);
 
   return (
     <div className="p-4 pb-36 space-y-6">
-      <h1 className="text-2xl font-bold font-title text-white pt-2">Busca</h1>
+      <header className="pt-2">
+        <h1 className="text-2xl font-bold font-title text-white">Buscar</h1>
+      </header>
 
-      {/* Input de Busca Real */}
+      {/* Input de Busca */}
       <div className="relative">
-        <SearchIcon className="absolute left-3.5 top-3.5 text-gray-400" size={18} />
+        <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Artistas, faixas ou gêneros..."
-          className="w-full bg-[#141419] border border-[#1F1F28] text-white pl-10 pr-4 py-3 rounded-2xl text-xs focus:outline-none focus:border-[#A78BFA]"
+          placeholder="Buscar músicas ou artistas no Spotify..."
+          className="w-full bg-[#141419] border border-[#1F1F28] focus:border-[#A78BFA] rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 outline-none transition"
         />
       </div>
 
-      {/* Resultados da API do Spotify */}
-      {loading ? (
-        <div className="text-center py-8 text-xs text-gray-500">Pesquisando no Spotify...</div>
-      ) : results.length > 0 ? (
-        <div className="space-y-2">
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Resultados</h2>
-          {results.map((track) => (
+      {/* Resultados */}
+      <div className="space-y-3">
+        {loading ? (
+          <div className="text-center py-10 text-xs text-gray-500">Buscando no Spotify...</div>
+        ) : results.length > 0 ? (
+          results.map((track) => (
             <div
               key={track.id}
               onClick={() => onSelectTrack(track)}
-              className="flex items-center justify-between p-2.5 rounded-2xl bg-[#141419] border border-[#1F1F28] hover:border-[#A78BFA]/50 cursor-pointer transition"
+              className="flex items-center justify-between p-3 rounded-2xl bg-[#141419] border border-[#1F1F28] hover:border-[#A78BFA]/50 transition cursor-pointer"
             >
-              <div className="flex items-center gap-3">
-                <img src={track.cover} alt={track.title} className="w-10 h-10 rounded-xl object-cover" />
-                <div className="truncate max-w-[180px]">
+              <div className="flex items-center gap-3 min-w-0">
+                <img src={track.cover} alt={track.title} className="w-12 h-12 rounded-xl object-cover shrink-0" />
+                <div className="min-w-0">
                   <h4 className="text-xs font-semibold text-white truncate">{track.title}</h4>
                   <p className="text-[10px] text-gray-400 truncate">{track.artist}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-mono text-[#A78BFA] font-bold">{track.rawScore}</span>
-                <button className="w-7 h-7 rounded-full bg-[#A78BFA]/10 text-[#A78BFA] flex items-center justify-center">
-                  <Play size={12} fill="currentColor" />
-                </button>
-              </div>
+              <span className="text-xs font-mono text-[#A78BFA] font-bold shrink-0">{track.rawScore}</span>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Categorias</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setQuery(cat)}
-                className="h-16 bg-[#141419] border border-[#1F1F28] rounded-2xl p-3 text-left hover:border-[#A78BFA]/50 transition flex items-center justify-between"
-              >
-                <span className="text-xs font-semibold text-white">{cat}</span>
-                <span className="text-[10px] text-[#A78BFA] font-mono">RAW</span>
-              </button>
-            ))}
+          ))
+        ) : query.trim() ? (
+          <div className="text-center py-10 text-xs text-gray-500">Nenhum resultado encontrado.</div>
+        ) : (
+          <div className="text-center py-12 text-xs text-gray-500 flex flex-col items-center gap-2">
+            <Music size={28} className="text-gray-600" />
+            <span>Digite o nome de uma música ou artista para buscar.</span>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

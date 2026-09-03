@@ -8,7 +8,7 @@ export const setAccessToken = (token) => {
   }
 };
 
-const getValidToken = () => {
+const ensureToken = () => {
   const token = localStorage.getItem("spotify_token");
   if (token) {
     spotify.setAccessToken(token);
@@ -17,151 +17,139 @@ const getValidToken = () => {
   return null;
 };
 
-// Calcula a compatibilidade baseada no nível underground (quanto menos comercial, maior o RAW score)
+// Converte a popularidade em porcentagem de compatibilidade
 const calculateRawScore = (popularity) => {
   const pop = typeof popularity === "number" && !isNaN(popularity) ? popularity : 20;
-  const score = Math.max(75, Math.min(99, 100 - Math.floor(pop * 0.6)));
+  const score = Math.max(70, Math.min(99, 100 - Math.floor(pop * 0.5)));
   return `${score}%`;
 };
 
-// Formata as faixas vindo do Spotify
 const formatTrack = (track) => {
+  if (!track) return null;
   return {
     id: track.id,
-    uri: track.uri,
     title: track.name,
-    artist: track.artists ? track.artists.map((a) => a.name).join(", ") : "Artista Desconhecido",
-    cover: track.album?.images[0]?.url || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=300",
+    artist: track.artists ? track.artists.map((a) => a.name).join(", ") : "Artista",
+    cover: track.album?.images?.[0]?.url || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=300",
     rawScore: calculateRawScore(track.popularity),
-    audioUrl: track.preview_url || null, // Se nulo, o player usará o Spotify Embed
+    audioUrl: track.preview_url || null,
     externalUrl: track.external_urls?.spotify,
   };
 };
 
-// 1. Home: Descobertas variadas baseadas no seu perfil + artistas undergrounds
+// 1. Home: Descobertas baseadas nos seus gostos (artistas variados e pouco conhecidos)
 export const getUndergroundTracks = async () => {
-  const token = getValidToken();
+  const token = ensureToken();
   if (!token) return [];
 
   try {
-    // Pega seus top artistas para usar como base de recomendação
     const topArtistsRes = await spotify.getMyTopArtists({ limit: 5 });
-    const topArtists = topArtistsRes.items;
+    const primaryGenre = topArtistsRes.items?.[0]?.genres?.[0] || "indie";
 
-    let tracks = [];
+    const searchRes = await spotify.searchTracks(`genre:"${primaryGenre}"`, { limit: 30 });
+    const items = searchRes.tracks?.items || [];
 
-    if (topArtists.length > 0) {
-      // Busca músicas relacionadas aos gêneros dos seus artistas favoritos
-      const genre = topArtists[0].genres[0] || "indie";
-      const searchRes = await spotify.searchTracks(`genre:"${genre}"`, { limit: 20 });
-      tracks = searchRes.tracks.items;
-    } else {
-      const searchRes = await spotify.searchTracks("tag:new indie", { limit: 20 });
-      tracks = searchRes.tracks.items;
+    const uniqueTracks = [];
+    const seenArtists = new Set();
+
+    for (const item of items) {
+      const mainArtistId = item.artists?.[0]?.id;
+      if (mainArtistId && !seenArtists.has(mainArtistId)) {
+        seenArtists.add(mainArtistId);
+        uniqueTracks.push(formatTrack(item));
+      }
+      if (uniqueTracks.length >= 10) break;
     }
 
-    // Filtra e ordena para garantir diversidade de artistas
-    const uniqueArtistsMap = new Map();
-    tracks.forEach((t) => {
-      const mainArtist = t.artists[0]?.id;
-      if (mainArtist && !uniqueArtistsMap.has(mainArtist)) {
-        uniqueArtistsMap.set(mainArtist, t);
-      }
-    });
-
-    return Array.from(uniqueArtistsMap.values()).map(formatTrack);
+    return uniqueTracks.filter(Boolean);
   } catch (error) {
-    console.error("Erro ao buscar Descobertas para você:", error);
+    console.error("Erro em getUndergroundTracks:", error);
     return [];
   }
 };
 
-// 2. Artistas em Destaque (Pouco conhecidos e compatíveis)
+// 2. Home: Artistas em Destaque (Foto, Nome e Gênero)
 export const getFeaturedArtists = async () => {
-  const token = getValidToken();
+  const token = ensureToken();
   if (!token) return [];
 
   try {
     const topArtistsRes = await spotify.getMyTopArtists({ limit: 3 });
-    let seedGenre = "indie";
+    const userGenre = topArtistsRes.items?.[0]?.genres?.[0] || "indie";
 
-    if (topArtistsRes.items.length > 0 && topArtistsRes.items[0].genres.length > 0) {
-      seedGenre = topArtistsRes.items[0].genres[0];
-    }
+    const searchRes = await spotify.searchArtists(`genre:"${userGenre}"`, { limit: 20 });
+    const items = searchRes.artists?.items || [];
 
-    const res = await spotify.searchArtists(`genre:"${seedGenre}"`, { limit: 12 });
-    // Pega artistas com popularidade menor que 50 (pouco conhecidos)
-    const undergroundArtists = res.artists.items
-      .filter((a) => a.popularity < 55)
-      .slice(0, 6);
-
-    return undergroundArtists.map((artist) => ({
-      id: artist.id,
-      name: artist.name,
-      genre: artist.genres[0] || "Underground",
-      avatar: artist.images[0]?.url || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200",
-    }));
+    return items
+      .filter((artist) => artist.popularity < 65)
+      .slice(0, 4)
+      .map((artist) => ({
+        id: artist.id,
+        name: artist.name,
+        genre: artist.genres?.[0] || "Indie",
+        avatar: artist.images?.[0]?.url || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200",
+      }));
   } catch (error) {
-    console.error("Erro ao carregar artistas em destaque:", error);
+    console.error("Erro em getFeaturedArtists:", error);
     return [];
   }
 };
 
-// 3. Descobrir: Filtrado dinamicamente por popularidade máxima
+// 3. Descobrir: Recomendações filtradas pelo slider de popularidade
 export const getDiscoverRecommendations = async (maxPop = 30) => {
-  const token = getValidToken();
+  const token = ensureToken();
   if (!token) return [];
 
   try {
-    const topArtists = await spotify.getMyTopArtists({ limit: 3 });
-    let query = "year:2023-2026 indie";
+    const topArtistsRes = await spotify.getMyTopArtists({ limit: 3 });
+    const userGenre = topArtistsRes.items?.[0]?.genres?.[0] || "indie";
 
-    if (topArtists.items.length > 0) {
-      const genre = topArtists.items[0].genres[0] || "indie";
-      query = `genre:"${genre}"`;
-    }
+    const searchRes = await spotify.searchTracks(`genre:"${userGenre}"`, { limit: 50 });
+    const items = searchRes.tracks?.items || [];
 
-    const res = await spotify.searchTracks(query, { limit: 50 });
-    // Filtra estritamente pelo teto de popularidade
-    const filtered = res.tracks.items.filter((t) => t.popularity <= maxPop);
-
-    return filtered.slice(0, 15).map(formatTrack);
+    return items
+      .filter((t) => typeof t.popularity === "number" && t.popularity <= maxPop)
+      .slice(0, 15)
+      .map(formatTrack)
+      .filter(Boolean);
   } catch (error) {
-    console.error("Erro na tela Descobrir:", error);
+    console.error("Erro em getDiscoverRecommendations:", error);
     return [];
   }
 };
 
-// 4. Busca em Tempo Real
+// 4. Busca: Conectada diretamente à API do Spotify
 export const searchTracks = async (query) => {
   if (!query || query.trim().length === 0) return [];
-  const token = getValidToken();
+  const token = ensureToken();
   if (!token) return [];
 
   try {
     const response = await spotify.searchTracks(query, { limit: 20 });
-    return response.tracks.items.map(formatTrack);
+    const items = response.tracks?.items || [];
+    return items.map(formatTrack).filter(Boolean);
   } catch (error) {
-    console.error("Erro ao realizar busca no Spotify:", error);
+    console.error("Erro na busca do Spotify:", error);
     return [];
   }
 };
 
-// 5. Playlists da sua biblioteca no Spotify
+// 5. Coleção: Playlists reais do perfil conectado
 export const getUserPlaylists = async () => {
-  const token = getValidToken();
+  const token = ensureToken();
   if (!token) return [];
 
   try {
     const response = await spotify.getUserPlaylists({ limit: 50 });
-    return response.items.map((pl) => ({
+    const items = response.items || [];
+    return items.map((pl) => ({
       id: pl.id,
       name: pl.name,
-      tracksCount: pl.tracks.total,
-      cover: pl.images[0]?.url || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300",
+      tracksCount: pl.tracks?.total || 0,
+      cover: pl.images?.[0]?.url || null,
     }));
   } catch (error) {
-    console.error("Erro ao buscar Playlists:", error);
+    console.error("Erro em getUserPlaylists:", error);
     return [];
   }
 };

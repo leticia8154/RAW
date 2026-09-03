@@ -1,29 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { ListMusic, Library, Music2 } from "lucide-react";
+import { Library, Music2 } from "lucide-react";
 import { getUserPlaylists } from "../services/spotifyService";
-import { redirectToSpotifyAuth } from "../config/spotify";
 
 export function Collections() {
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("spotify_token");
 
   useEffect(() => {
-    if (token) {
-      getUserPlaylists().then((data) => {
-        setPlaylists(data || []);
-        setLoading(false);
-      });
-    } else {
+    getUserPlaylists().then((data) => {
+      setPlaylists(data || []);
       setLoading(false);
-    }
-  }, [token]);
+    });
+  }, []);
 
   return (
     <div className="p-4 pb-36 space-y-6">
       <header className="pt-2">
         <h1 className="text-2xl font-bold font-title text-white">Coleções</h1>
-        <p className="text-xs text-gray-400">Sua biblioteca sincronizada com o Spotify.</p>
+        <p className="text-xs text-gray-400">Sua biblioteca sincronizada do Spotify.</p>
       </header>
 
       <section className="space-y-3">
@@ -57,18 +51,7 @@ export function Collections() {
             ))}
           </div>
         ) : (
-          <div className="bg-[#141419] border border-[#1F1F28] p-6 rounded-2xl text-center space-y-4">
-            <ListMusic className="mx-auto text-gray-500" size={32} />
-            <p className="text-xs text-gray-400">Nenhuma playlist encontrada ou conta desconectada.</p>
-            {!token && (
-              <button
-                onClick={redirectToSpotifyAuth}
-                className="inline-block bg-[#A78BFA] text-black font-bold text-xs px-4 py-2 rounded-full uppercase tracking-wider"
-              >
-                Conectar Spotify
-              </button>
-            )}
-          </div>
+          <div className="text-center py-10 text-xs text-gray-500">Nenhuma playlist encontrada na sua conta.</div>
         )}
       </section>
     </div>
