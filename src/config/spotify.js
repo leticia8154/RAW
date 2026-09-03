@@ -1,6 +1,6 @@
 export const authEndpoint = "https://accounts.spotify.com/authorize";
 export const clientId = "490018501b90452fa8b5802b78b7ed63";
-export const redirectUri = "http://127.0.0.1:5173/";
+export const redirectUri = "https://turbo-fishstick-7vw67qx554j9cp6wx-5173.app.github.dev/";
 
 export const scopes = [
   "user-read-currently-playing",
