@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Home } from "./pages/Home";
 import { Discover } from "./pages/Discover";
@@ -20,8 +20,8 @@ export default function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-brand-bg text-brand-text font-sans antialiased selection:bg-brand-accent selection:text-black">
-        <main>
+      <div className="min-h-screen bg-[#0A0A0D] text-[#E2E2E8] font-sans antialiased">
+        <main className="pb-24">
           <Routes>
             <Route path="/" element={<Home onSelectTrack={handleSelectTrack} />} />
             <Route path="/discover" element={<Discover onSelectTrack={handleSelectTrack} />} />

@@ -1,3 +1,4 @@
+import React from "react";
 import { ShieldAlert, Award, Clock, Heart } from "lucide-react";
 import { MOCK_TRACKS } from "../data/mockData";
 

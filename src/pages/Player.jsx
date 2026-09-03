@@ -1,3 +1,4 @@
+import React from "react";
 import { Play, Pause, SkipBack, SkipForward, ShieldAlert, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 

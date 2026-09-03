@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import { useEffect, useState } from "react";
 import { Play, Sparkles, Music, ExternalLink } from "lucide-react";
 import { loginUrl } from "../config/spotify";

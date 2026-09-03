@@ -1,3 +1,4 @@
+import React from "react";
 import { MOCK_TRACKS } from "../data/mockData";
 import { TrendingUp, Zap, ShieldAlert, Sparkles } from "lucide-react";
 
