@@ -9,11 +9,11 @@ export function Collections() {
   const [token, setToken] = useState(localStorage.getItem("spotify_token"));
 
   useEffect(() => {
-    // 1. Captura o token diretamente da hash da URL (#access_token=...)
     const hash = window.location.hash;
     let activeToken = token;
 
-    if (hash) {
+    // Extrai o token novo se veio do redirecionamento
+    if (hash && hash.includes("access_token")) {
       const tokenParam = hash
         .substring(1)
         .split("&")
@@ -23,19 +23,26 @@ export function Collections() {
         activeToken = tokenParam.split("=")[1];
         window.localStorage.setItem("spotify_token", activeToken);
         setToken(activeToken);
-        // Limpa a URL para sumir com a hash gigante
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
 
-    // 2. Se temos um token, configura e busca as playlists
     if (activeToken) {
       setAccessToken(activeToken);
       getUserPlaylists()
         .then((data) => {
-          setPlaylists(data || []);
+          if (data) {
+            setPlaylists(data);
+          } else {
+            // Se retornar nulo (erro de auth), limpa o token expirado
+            window.localStorage.removeItem("spotify_token");
+            setToken(null);
+          }
         })
-        .catch((err) => console.error("Erro ao carregar:", err))
+        .catch(() => {
+          window.localStorage.removeItem("spotify_token");
+          setToken(null);
+        })
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
@@ -84,20 +91,18 @@ export function Collections() {
             <ListMusic className="mx-auto text-gray-500" size={32} />
             <div className="space-y-1">
               <p className="text-xs text-gray-400">
-                {token ? "Nenhuma playlist pública encontrada." : "Spotify desconectado."}
+                {token ? "Nenhuma playlist pública encontrada." : "Sessão expirada ou desconectada."}
               </p>
               <p className="text-[10px] text-gray-500">
-                {token ? "Crie ou siga playlists no seu Spotify." : "Autorize o acesso para sincronizar sua conta."}
+                Conecte sua conta para gerar um novo token e carregar sua biblioteca.
               </p>
             </div>
-            {!token && (
-              <a
-                href={loginUrl}
-                className="inline-block bg-[#A78BFA] text-black font-bold text-xs px-4 py-2 rounded-full uppercase tracking-wider hover:opacity-90 transition"
-              >
-                Conectar Spotify
-              </a>
-            )}
+            <a
+              href={loginUrl}
+              className="inline-block bg-[#A78BFA] text-black font-bold text-xs px-4 py-2 rounded-full uppercase tracking-wider hover:opacity-90 transition"
+            >
+              Conectar Spotify
+            </a>
           </div>
         )}
       </section>
