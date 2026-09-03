@@ -8,23 +8,19 @@ export function Home({ onSelectTrack }) {
   const [token, setToken] = useState(null);
   const [spotifyTracks, setSpotifyTracks] = useState([]);
 
-  useEffect(() => {
-    const hash = window.location.hash;
+useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
     let localToken = window.localStorage.getItem("spotify_token");
 
-    if (!localToken && hash) {
-      const tokenParam = hash.substring(1).split("&").find(e => e.startsWith("access_token"));
-      if (tokenParam) {
-        localToken = tokenParam.split("=")[1];
-        window.location.hash = "";
-        window.localStorage.setItem("spotify_token", localToken);
-      }
-    }
-
-    if (localToken) {
+    if (code && !localToken) {
+      window.localStorage.setItem("spotify_token", code);
+      setToken(code);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (localToken) {
       setToken(localToken);
       setAccessToken(localToken);
-      getUndergroundTracks().then(tracks => tracks && setSpotifyTracks(tracks));
+      getUndergroundTracks().then((tracks) => tracks && setSpotifyTracks(tracks));
     }
   }, []);
 
