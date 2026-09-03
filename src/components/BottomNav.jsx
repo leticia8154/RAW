@@ -1,34 +1,33 @@
+import React from "react";
 import { Home, Compass, Search, User } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 export function BottomNav() {
-  const location = useLocation();
-  const isActive = (path) => location.pathname === path;
-
   const navItems = [
-    { label: "Início", path: "/", icon: Home },
-    { label: "Descobrir", path: "/discover", icon: Compass },
-    { label: "Buscar", path: "/search", icon: Search },
-    { label: "Minha RAW", path: "/profile", icon: User },
+    { to: "/", icon: Home, label: "Home" },
+    { to: "/discover", icon: Compass, label: "Descobrir" },
+    { to: "/search", icon: Search, label: "Busca" },
+    { to: "/profile", icon: User, label: "Perfil" },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-brand-surface/90 backdrop-blur-md border-t border-brand-border px-6 py-3 z-40 max-w-md mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#0A0A0D]/95 backdrop-blur-lg border-t border-brand-border px-6 py-2 z-50">
       <div className="flex justify-between items-center">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const active = isActive(item.path);
           return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex flex-col items-center gap-1 transition-colors ${
-                active ? "text-brand-accent" : "text-brand-muted hover:text-white"
-              }`}
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `flex flex-col items-center gap-1 text-[10px] transition ${
+                  isActive ? "text-brand-accent font-semibold" : "text-brand-muted hover:text-white"
+                }`
+              }
             >
               <Icon size={20} />
-              <span className="text-[10px] font-medium tracking-wide">{item.label}</span>
-            </Link>
+              <span>{item.label}</span>
+            </NavLink>
           );
         })}
       </div>
