@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ListMusic, Library, Music2 } from "lucide-react";
 import { getUserPlaylists } from "../services/spotifyService";
-import { loginUrl } from "../config/spotify";
+import { redirectToSpotifyAuth } from "../config/spotify";
 
 export function Collections() {
   const [playlists, setPlaylists] = useState([]);
@@ -68,12 +68,12 @@ export function Collections() {
               </p>
             </div>
             {!token && (
-              <a
-                href={loginUrl}
+              <button
+                onClick={redirectToSpotifyAuth}
                 className="inline-block bg-[#A78BFA] text-black font-bold text-xs px-4 py-2 rounded-full uppercase tracking-wider hover:opacity-90 transition"
               >
                 Conectar Spotify
-              </a>
+              </button>
             )}
           </div>
         )}

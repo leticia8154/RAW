@@ -10,6 +10,7 @@ import { BottomNav } from "./components/BottomNav";
 import { MiniPlayer } from "./components/MiniPlayer";
 import { MOCK_TRACKS } from "./data/mockData";
 import { setAccessToken } from "./services/spotifyService";
+import { getAccessTokenWithCode } from "./config/spotify";
 
 export default function App() {
   const [currentTrack, setCurrentTrack] = useState(MOCK_TRACKS[0]);
@@ -17,24 +18,21 @@ export default function App() {
   const [token, setToken] = useState(localStorage.getItem("spotify_token"));
 
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash && hash.includes("access_token")) {
-      const tokenParam = hash
-        .substring(1)
-        .split("&")
-        .find((elem) => elem.startsWith("access_token"));
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
 
-      if (tokenParam) {
-        const _token = tokenParam.split("=")[1];
-        window.localStorage.setItem("spotify_token", _token);
-        setToken(_token);
-        setAccessToken(_token);
-        window.location.hash = "";
-      }
+    if (code) {
+      getAccessTokenWithCode(code).then((newToken) => {
+        if (newToken) {
+          setToken(newToken);
+          setAccessToken(newToken);
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      });
     } else if (token) {
       setAccessToken(token);
     }
-  }, [token]);
+  }, []);
 
   const handleSelectTrack = (track) => {
     setCurrentTrack(track);
