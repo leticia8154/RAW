@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Home } from "./pages/Home";
 import { Discover } from "./pages/Discover";
@@ -9,10 +9,32 @@ import { RawPlus } from "./pages/RawPlus";
 import { BottomNav } from "./components/BottomNav";
 import { MiniPlayer } from "./components/MiniPlayer";
 import { MOCK_TRACKS } from "./data/mockData";
+import { setAccessToken } from "./services/spotifyService";
 
 export default function App() {
   const [currentTrack, setCurrentTrack] = useState(MOCK_TRACKS[0]);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [token, setToken] = useState(localStorage.getItem("spotify_token"));
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.includes("access_token")) {
+      const tokenParam = hash
+        .substring(1)
+        .split("&")
+        .find((elem) => elem.startsWith("access_token"));
+
+      if (tokenParam) {
+        const _token = tokenParam.split("=")[1];
+        window.localStorage.setItem("spotify_token", _token);
+        setToken(_token);
+        setAccessToken(_token);
+        window.location.hash = "";
+      }
+    } else if (token) {
+      setAccessToken(token);
+    }
+  }, [token]);
 
   const handleSelectTrack = (track) => {
     setCurrentTrack(track);

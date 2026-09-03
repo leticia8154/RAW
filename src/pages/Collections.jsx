@@ -1,53 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { ListMusic, Library, Music2 } from "lucide-react";
-import { getUserPlaylists, setAccessToken } from "../services/spotifyService";
+import { getUserPlaylists } from "../services/spotifyService";
 import { loginUrl } from "../config/spotify";
 
 export function Collections() {
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem("spotify_token"));
+  const token = localStorage.getItem("spotify_token");
 
   useEffect(() => {
-    const hash = window.location.hash;
-    let activeToken = token;
-
-    // Extrai o token novo se veio do redirecionamento
-    if (hash && hash.includes("access_token")) {
-      const tokenParam = hash
-        .substring(1)
-        .split("&")
-        .find((elem) => elem.startsWith("access_token"));
-
-      if (tokenParam) {
-        activeToken = tokenParam.split("=")[1];
-        window.localStorage.setItem("spotify_token", activeToken);
-        setToken(activeToken);
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    }
-
-    if (activeToken) {
-      setAccessToken(activeToken);
-      getUserPlaylists()
-        .then((data) => {
-          if (data) {
-            setPlaylists(data);
-          } else {
-            // Se retornar nulo (erro de auth), limpa o token expirado
-            window.localStorage.removeItem("spotify_token");
-            setToken(null);
-          }
-        })
-        .catch(() => {
-          window.localStorage.removeItem("spotify_token");
-          setToken(null);
-        })
-        .finally(() => setLoading(false));
+    if (token) {
+      getUserPlaylists().then((data) => {
+        setPlaylists(data || []);
+        setLoading(false);
+      });
     } else {
       setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   return (
     <div className="p-4 pb-36 space-y-6">
@@ -91,18 +61,20 @@ export function Collections() {
             <ListMusic className="mx-auto text-gray-500" size={32} />
             <div className="space-y-1">
               <p className="text-xs text-gray-400">
-                {token ? "Nenhuma playlist pública encontrada." : "Sessão expirada ou desconectada."}
+                {token ? "Nenhuma playlist encontrada." : "Spotify desconectado."}
               </p>
               <p className="text-[10px] text-gray-500">
-                Conecte sua conta para gerar um novo token e carregar sua biblioteca.
+                {token ? "Sua biblioteca está vazia ou privada." : "Conecte sua conta para autorizar o acesso."}
               </p>
             </div>
-            <a
-              href={loginUrl}
-              className="inline-block bg-[#A78BFA] text-black font-bold text-xs px-4 py-2 rounded-full uppercase tracking-wider hover:opacity-90 transition"
-            >
-              Conectar Spotify
-            </a>
+            {!token && (
+              <a
+                href={loginUrl}
+                className="inline-block bg-[#A78BFA] text-black font-bold text-xs px-4 py-2 rounded-full uppercase tracking-wider hover:opacity-90 transition"
+              >
+                Conectar Spotify
+              </a>
+            )}
           </div>
         )}
       </section>

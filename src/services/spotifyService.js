@@ -8,16 +8,18 @@ export const setAccessToken = (token) => {
   }
 };
 
-const initToken = () => {
-  const token = localStorage.getItem("spotify_token");
-  if (token) {
-    spotify.setAccessToken(token);
+const handleAuthError = (error) => {
+  if (error.status === 401 || error.statusCode === 401) {
+    window.localStorage.removeItem("spotify_token");
+    window.location.reload();
   }
-  return token;
 };
 
 export const getUndergroundTracks = async () => {
-  initToken();
+  const token = localStorage.getItem("spotify_token");
+  if (!token) return null;
+  
+  spotify.setAccessToken(token);
   try {
     const response = await spotify.searchTracks("genre:indie", { limit: 10 });
     return response.tracks.items.map((track) => ({
@@ -29,14 +31,17 @@ export const getUndergroundTracks = async () => {
       audioUrl: track.preview_url,
     }));
   } catch (error) {
-    console.error("Erro na API do Spotify:", error);
+    handleAuthError(error);
     return null;
   }
 };
 
 export const searchTracks = async (query) => {
   if (!query) return [];
-  initToken();
+  const token = localStorage.getItem("spotify_token");
+  if (!token) return [];
+
+  spotify.setAccessToken(token);
   try {
     const response = await spotify.searchTracks(query, { limit: 12 });
     return response.tracks.items.map((track) => ({
@@ -48,14 +53,16 @@ export const searchTracks = async (query) => {
       audioUrl: track.preview_url,
     }));
   } catch (error) {
-    console.error("Erro na busca:", error);
+    handleAuthError(error);
     return [];
   }
 };
 
 export const getUserPlaylists = async () => {
-  const token = initToken();
+  const token = localStorage.getItem("spotify_token");
   if (!token) return [];
+
+  spotify.setAccessToken(token);
   try {
     const response = await spotify.getUserPlaylists();
     return response.items.map((pl) => ({
@@ -65,7 +72,7 @@ export const getUserPlaylists = async () => {
       cover: pl.images[0]?.url,
     }));
   } catch (error) {
-    console.error("Erro ao buscar playlists:", error);
+    handleAuthError(error);
     return [];
   }
 };

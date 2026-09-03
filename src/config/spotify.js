@@ -9,10 +9,11 @@ export const scopes = [
   "user-top-read",
   "user-modify-playback-state",
   "playlist-read-private",
+  "playlist-read-collaborative",
   "playlist-modify-public",
   "playlist-modify-private"
 ];
 
 export const loginUrl = `${authEndpoint}?client_id=${clientId}&redirect_uri=${encodeURIComponent(
   redirectUri
-)}&scope=${encodeURIComponent(scopes.join(" "))}&response_type=code&show_dialog=true`;
+)}&scope=${encodeURIComponent(scopes.join(" "))}&response_type=token&show_dialog=true`;
