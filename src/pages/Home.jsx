@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { Logo } from "../components/Logo";
-import { loginUrl } from "../config/spotify";
+import { redirectToSpotifyAuth } from "../config/spotify";
 import { setAccessToken, getUndergroundTracks } from "../services/spotifyService";
 import { MOCK_TRACKS } from "../data/mockData";
 
@@ -10,16 +10,8 @@ export function Home({ onSelectTrack }) {
   const [tracks, setTracks] = useState(MOCK_TRACKS);
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get("code");
-    let localToken = window.localStorage.getItem("spotify_token");
-
-    if (code && !localToken) {
-      window.localStorage.setItem("spotify_token", code);
-      setToken(code);
-      setAccessToken(code);
-      window.history.replaceState({}, document.title, window.location.pathname);
-    } else if (localToken) {
+    const localToken = localStorage.getItem("spotify_token");
+    if (localToken) {
       setToken(localToken);
       setAccessToken(localToken);
       getUndergroundTracks().then((data) => {
@@ -34,10 +26,17 @@ export function Home({ onSelectTrack }) {
       <header className="flex justify-between items-center pt-2">
         <Logo className="h-7" />
         <div className="flex items-center gap-3">
-          {!token && (
-            <a href={loginUrl} className="bg-[#A78BFA] text-black font-bold text-[10px] px-3 py-1.5 rounded-full uppercase tracking-wider">
+          {!token ? (
+            <button
+              onClick={redirectToSpotifyAuth}
+              className="bg-[#A78BFA] text-black font-bold text-[10px] px-3 py-1.5 rounded-full uppercase tracking-wider hover:opacity-90 transition"
+            >
               Conectar Spotify
-            </a>
+            </button>
+          ) : (
+            <span className="text-[10px] text-[#A78BFA] font-mono bg-[#A78BFA]/10 px-2.5 py-1 rounded-full border border-[#A78BFA]/20">
+              Conectado
+            </span>
           )}
           <button className="text-gray-300 hover:text-white">
             <Bell size={22} />
