@@ -4,6 +4,8 @@ import { Home } from "./pages/Home";
 import { Discover } from "./pages/Discover";
 import { Search } from "./pages/Search";
 import { Profile } from "./pages/Profile";
+import { Collections } from "./pages/Collections";
+import { RawPlus } from "./pages/RawPlus";
 import { BottomNav } from "./components/BottomNav";
 import { MiniPlayer } from "./components/MiniPlayer";
 import { MOCK_TRACKS } from "./data/mockData";
@@ -20,15 +22,14 @@ export default function App() {
   return (
     <Router>
       <div className="min-h-screen bg-black flex items-center justify-center p-0 sm:p-4">
-        {/* Container Smartphone sem barras de rolagem visíveis */}
         <div className="w-full max-w-md h-screen sm:h-[844px] bg-[#050507] sm:rounded-[40px] border-0 sm:border-[8px] border-[#1F1F28] relative overflow-hidden flex flex-col shadow-2xl">
           <main className="flex-1 overflow-y-auto no-scrollbar">
             <Routes>
               <Route path="/" element={<Home onSelectTrack={handleSelectTrack} />} />
               <Route path="/discover" element={<Discover onSelectTrack={handleSelectTrack} />} />
               <Route path="/search" element={<Search onSelectTrack={handleSelectTrack} />} />
-              <Route path="/collections" element={<Profile />} />
-              <Route path="/raw-plus" element={<Profile />} />
+              <Route path="/collections" element={<Collections onSelectTrack={handleSelectTrack} />} />
+              <Route path="/raw-plus" element={<RawPlus />} />
               <Route path="/profile" element={<Profile />} />
             </Routes>
           </main>
