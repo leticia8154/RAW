@@ -6,35 +6,39 @@ export const setAccessToken = (token) => {
   spotify.setAccessToken(token);
 };
 
-export const getUndergroundTracks = async (query = "indie") => {
+export const getUndergroundTracks = async () => {
   try {
-    const response = await spotify.searchTracks(query, { limit: 50 });
-    const tracks = response.tracks.items;
+    const response = await spotify.searchTracks("tag:new", { limit: 20 });
+    // Filtra artistas com menos de 30% de popularidade (Underground)
+    const underground = response.tracks.items.filter(
+      (track) => track.artist_popularity === undefined || track.popularity < 30
+    );
 
-    const undergroundTracks = tracks.filter((track) => track.popularity <= 30);
-
-    return undergroundTracks.map((track) => ({
+    return (underground.length > 0 ? underground : response.tracks.items).map((track) => ({
       id: track.id,
       title: track.name,
       artist: track.artists.map((a) => a.name).join(", "),
-      cover: track.album.images[0]?.url,
-      popularity: track.popularity,
-      rawScore: 100 - track.popularity, // RAW Score Invertido
-      uri: track.uri,
-      duration: `${Math.floor(track.duration_ms / 60000)}:${Math.floor((track.duration_ms % 60000) / 1000).toString().padStart(2, '0')}`,
+      cover: track.album.images[0]?.url || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=300",
+      rawScore: `${100 - track.popularity}%`,
+      audioUrl: track.preview_url,
     }));
   } catch (error) {
-    console.error("Erro ao buscar músicas no Spotify:", error);
-    return [];
+    console.error("Erro na busca underground:", error);
+    return null;
   }
 };
 
 export const getUserPlaylists = async () => {
   try {
-    const playlists = await spotify.getUserPlaylists();
-    return playlists.items;
+    const response = await spotify.getUserPlaylists();
+    return response.items.map((pl) => ({
+      id: pl.id,
+      name: pl.name,
+      tracksCount: pl.tracks.total,
+      cover: pl.images[0]?.url || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300",
+    }));
   } catch (error) {
-    console.error("Erro ao buscar playlists do usuário:", error);
+    console.error("Erro ao carregar playlists:", error);
     return [];
   }
 };
