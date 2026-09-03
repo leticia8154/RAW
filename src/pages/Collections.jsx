@@ -23,16 +23,16 @@ export function Collections() {
     <div className="p-4 pb-36 space-y-6">
       <header className="pt-2">
         <h1 className="text-2xl font-bold font-title text-white">Coleções</h1>
-        <p className="text-xs text-gray-400">Sua biblioteca e playlists salvas no Spotify.</p>
+        <p className="text-xs text-gray-400">Sua biblioteca sincronizada com o Spotify.</p>
       </header>
 
       <section className="space-y-3">
         <div className="flex items-center gap-2 text-xs font-semibold text-[#A78BFA] uppercase tracking-wider">
-          <Library size={16} /> Playlists do Seu Spotify
+          <Library size={16} /> Suas Playlists
         </div>
 
         {loading ? (
-          <div className="text-center py-10 text-xs text-gray-500">Buscando sua biblioteca do Spotify...</div>
+          <div className="text-center py-10 text-xs text-gray-500">Carregando suas playlists...</div>
         ) : playlists.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
             {playlists.map((pl) => (
@@ -59,15 +59,11 @@ export function Collections() {
         ) : (
           <div className="bg-[#141419] border border-[#1F1F28] p-6 rounded-2xl text-center space-y-4">
             <ListMusic className="mx-auto text-gray-500" size={32} />
-            <div className="space-y-1">
-              <p className="text-xs text-gray-400">
-                {token ? "Nenhuma playlist salva encontrada." : "Spotify desconectado."}
-              </p>
-            </div>
+            <p className="text-xs text-gray-400">Nenhuma playlist encontrada ou conta desconectada.</p>
             {!token && (
               <button
                 onClick={redirectToSpotifyAuth}
-                className="inline-block bg-[#A78BFA] text-black font-bold text-xs px-4 py-2 rounded-full uppercase tracking-wider hover:opacity-90 transition"
+                className="inline-block bg-[#A78BFA] text-black font-bold text-xs px-4 py-2 rounded-full uppercase tracking-wider"
               >
                 Conectar Spotify
               </button>

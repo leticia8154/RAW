@@ -3,34 +3,23 @@ import { SlidersHorizontal, Play } from "lucide-react";
 import { getDiscoverRecommendations } from "../services/spotifyService";
 
 export function Discover({ onSelectTrack }) {
-  const [maxPopularity, setMaxPopularity] = useState(25);
+  const [maxPopularity, setMaxPopularity] = useState(30);
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let isMounted = true;
     setLoading(true);
-
-    const timer = setTimeout(() => {
-      getDiscoverRecommendations(maxPopularity).then((data) => {
-        if (isMounted) {
-          setTracks(data || []);
-          setLoading(false);
-        }
-      });
-    }, 200);
-
-    return () => {
-      isMounted = false;
-      clearTimeout(timer);
-    };
+    getDiscoverRecommendations(maxPopularity).then((data) => {
+      setTracks(data || []);
+      setLoading(false);
+    });
   }, [maxPopularity]);
 
   return (
     <div className="p-4 pb-36 space-y-6">
       <header className="pt-2">
         <h1 className="text-2xl font-bold font-title text-white">Descobrir</h1>
-        <p className="text-xs text-gray-400">Filtre o underground baseado no seu perfil Spotify.</p>
+        <p className="text-xs text-gray-400">Descubra faixas underground com base no seu gosto.</p>
       </header>
 
       {/* Slider de Popularidade */}
@@ -46,7 +35,7 @@ export function Discover({ onSelectTrack }) {
         <input
           type="range"
           min="5"
-          max="60"
+          max="50"
           value={maxPopularity}
           onChange={(e) => setMaxPopularity(Number(e.target.value))}
           className="w-full accent-[#A78BFA] bg-[#1F1F28] h-1.5 rounded-lg appearance-none cursor-pointer"
@@ -56,7 +45,7 @@ export function Discover({ onSelectTrack }) {
       {/* Lista Dinâmica */}
       <section className="space-y-3">
         {loading ? (
-          <div className="text-center py-10 text-xs text-gray-500">Recalculando nível underground...</div>
+          <div className="text-center py-10 text-xs text-gray-500">Filtrando o catálogo do Spotify...</div>
         ) : tracks.length > 0 ? (
           tracks.map((track) => (
             <div
@@ -66,9 +55,9 @@ export function Discover({ onSelectTrack }) {
             >
               <div className="flex items-center gap-3">
                 <img src={track.cover} alt={track.title} className="w-12 h-12 rounded-xl object-cover" />
-                <div>
-                  <h4 className="text-xs font-semibold text-white">{track.title}</h4>
-                  <p className="text-[10px] text-gray-400">{track.artist}</p>
+                <div className="truncate max-w-[170px]">
+                  <h4 className="text-xs font-semibold text-white truncate">{track.title}</h4>
+                  <p className="text-[10px] text-gray-400 truncate">{track.artist}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -81,7 +70,7 @@ export function Discover({ onSelectTrack }) {
           ))
         ) : (
           <div className="text-center py-10 text-xs text-gray-500">
-            Nenhuma música encontrada neste nível de popularidade. Aumente o slider.
+            Aumente o nível de popularidade para ver mais resultados.
           </div>
         )}
       </section>

@@ -7,7 +7,7 @@ import { setAccessToken, getUndergroundTracks, getFeaturedArtists } from "../ser
 
 export function Home({ onSelectTrack }) {
   const navigate = useNavigate();
-  const [token, setToken] = useState(localStorage.getItem("spotify_token"));
+  const [token] = useState(localStorage.getItem("spotify_token"));
   const [tracks, setTracks] = useState([]);
   const [featuredArtists, setFeaturedArtists] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,18 +19,14 @@ export function Home({ onSelectTrack }) {
 
       Promise.all([getUndergroundTracks(), getFeaturedArtists()])
         .then(([tracksData, artistsData]) => {
-          if (tracksData && tracksData.length > 0) setTracks(tracksData);
-          if (artistsData && artistsData.length > 0) setFeaturedArtists(artistsData);
+          setTracks(tracksData || []);
+          setFeaturedArtists(artistsData || []);
         })
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
     }
   }, [token]);
-
-  const handleArtistClick = (artistName) => {
-    navigate(`/search?q=${encodeURIComponent(artistName)}`);
-  };
 
   return (
     <div className="p-4 pb-36 space-y-6">
@@ -66,8 +62,8 @@ export function Home({ onSelectTrack }) {
         </div>
 
         {loading ? (
-          <div className="text-xs text-gray-500 py-6 text-center">Sincronizando com seu Spotify...</div>
-        ) : (
+          <div className="text-xs text-gray-500 py-8 text-center">Buscando faixas no seu perfil Spotify...</div>
+        ) : tracks.length > 0 ? (
           <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
             {tracks.map((track) => (
               <div
@@ -88,10 +84,12 @@ export function Home({ onSelectTrack }) {
               </div>
             ))}
           </div>
+        ) : (
+          <div className="text-xs text-gray-500 py-6 text-center">Conecte sua conta do Spotify para carregar recomendações.</div>
         )}
       </section>
 
-      {/* Artistas em Destaque */}
+      {/* Artistas em Destaque Restaurado */}
       <section className="space-y-3">
         <div className="flex justify-between items-center">
           <h2 className="text-sm font-semibold text-white">Artistas em destaque</h2>
@@ -101,10 +99,10 @@ export function Home({ onSelectTrack }) {
         </div>
 
         <div className="grid grid-cols-4 gap-2">
-          {featuredArtists.slice(0, 4).map((artist) => (
+          {featuredArtists.map((artist) => (
             <div
               key={artist.id}
-              onClick={() => handleArtistClick(artist.name)}
+              onClick={() => navigate(`/search?q=${encodeURIComponent(artist.name)}`)}
               className="flex flex-col items-center text-center space-y-1 cursor-pointer group"
             >
               <div className="w-14 h-14 rounded-full overflow-hidden bg-[#141419] border border-[#1F1F28] group-hover:border-[#A78BFA] transition">
