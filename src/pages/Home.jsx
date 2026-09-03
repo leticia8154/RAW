@@ -1,28 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Logo } from "../components/Logo";
 import { redirectToSpotifyAuth } from "../config/spotify";
-import { setAccessToken, getUndergroundTracks } from "../services/spotifyService";
+import { setAccessToken, getUndergroundTracks, getFeaturedArtists } from "../services/spotifyService";
 import { MOCK_TRACKS } from "../data/mockData";
 
 export function Home({ onSelectTrack }) {
-  const [token, setToken] = useState(null);
+  const navigate = useNavigate();
+  const [token, setToken] = useState(localStorage.getItem("spotify_token"));
   const [tracks, setTracks] = useState(MOCK_TRACKS);
+  const [featuredArtists, setFeaturedArtists] = useState([]);
 
   useEffect(() => {
-    const localToken = localStorage.getItem("spotify_token");
-    if (localToken) {
-      setToken(localToken);
-      setAccessToken(localToken);
+    if (token) {
+      setAccessToken(token);
       getUndergroundTracks().then((data) => {
         if (data && data.length > 0) setTracks(data);
       });
+      getFeaturedArtists().then((artists) => {
+        if (artists && artists.length > 0) setFeaturedArtists(artists);
+      });
     }
-  }, []);
+  }, [token]);
 
   return (
     <div className="p-4 pb-36 space-y-6">
-      {/* Header Fiel com Logo e Notificação */}
+      {/* Header */}
       <header className="flex justify-between items-center pt-2">
         <Logo className="h-7" />
         <div className="flex items-center gap-3">
@@ -44,11 +48,13 @@ export function Home({ onSelectTrack }) {
         </div>
       </header>
 
-      {/* Descobertas para você - Carrossel Touch sem barra */}
+      {/* Descobertas para você */}
       <section className="space-y-3">
         <div className="flex justify-between items-center">
           <h2 className="text-sm font-semibold text-white">Descobertas para você</h2>
-          <span className="text-xs text-gray-400 cursor-pointer">Ver todas</span>
+          <button onClick={() => navigate("/discover")} className="text-xs text-gray-400 hover:text-[#A78BFA]">
+            Ver todas
+          </button>
         </div>
 
         <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
@@ -65,7 +71,7 @@ export function Home({ onSelectTrack }) {
                 <h3 className="text-xs font-semibold text-white truncate">{track.title}</h3>
                 <p className="text-[10px] text-gray-400 truncate">{track.artist}</p>
                 <span className="inline-block mt-1 text-[9px] text-[#A78BFA] bg-[#A78BFA]/10 px-2 py-0.5 rounded-full border border-[#A78BFA]/20">
-                  {track.rawScore} compatibilidade
+                  {track.rawScore || "92%"} compatibilidade
                 </span>
               </div>
             </div>
@@ -73,23 +79,25 @@ export function Home({ onSelectTrack }) {
         </div>
       </section>
 
-      {/* Artistas em Destaque */}
+      {/* Artistas em Destaque com Foto Real */}
       <section className="space-y-3">
         <div className="flex justify-between items-center">
           <h2 className="text-sm font-semibold text-white">Artistas em destaque</h2>
-          <span className="text-xs text-gray-400 cursor-pointer">Ver todos</span>
+          <button onClick={() => navigate("/search")} className="text-xs text-gray-400 hover:text-[#A78BFA]">
+            Ver todos
+          </button>
         </div>
 
         <div className="grid grid-cols-4 gap-2">
-          {[
-            { name: "Óra", genre: "Alternativo" },
-            { name: "Sala dos Ecos", genre: "Indie Rock" },
-            { name: "Vértice", genre: "Eletrônica" },
-            { name: "Luar", genre: "Dream Pop" }
-          ].map((artist, idx) => (
-            <div key={idx} className="flex flex-col items-center text-center space-y-1">
-              <div className="w-14 h-14 rounded-full bg-[#141419] border border-[#1F1F28] flex items-center justify-center font-bold text-[#A78BFA] text-sm">
-                {artist.name[0]}
+          {(featuredArtists.length > 0 ? featuredArtists : [
+            { name: "Mazzy Star", genre: "Dream Pop", avatar: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200" },
+            { name: "Cigarettes After Sex", genre: "Ambient", avatar: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=200" },
+            { name: "TV Girl", genre: "Indie Pop", avatar: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200" },
+            { name: "Phoebe Bridgers", genre: "Folk Rock", avatar: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=200" }
+          ]).slice(0, 4).map((artist, idx) => (
+            <div key={artist.id || idx} className="flex flex-col items-center text-center space-y-1">
+              <div className="w-14 h-14 rounded-full overflow-hidden bg-[#141419] border border-[#1F1F28]">
+                <img src={artist.avatar} alt={artist.name} className="w-full h-full object-cover" />
               </div>
               <span className="text-[11px] font-medium text-white truncate w-full">{artist.name}</span>
               <span className="text-[9px] text-gray-400 truncate w-full">{artist.genre}</span>
