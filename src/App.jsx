@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Home } from "./pages/Home";
 import { Discover } from "./pages/Discover";
-import { Player } from "./pages/Player";
 import { Search } from "./pages/Search";
 import { Profile } from "./pages/Profile";
 import { BottomNav } from "./components/BottomNav";
@@ -20,32 +19,27 @@ export default function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-[#0A0A0D] text-[#E2E2E8] font-sans antialiased">
-        <main className="pb-24">
-          <Routes>
-            <Route path="/" element={<Home onSelectTrack={handleSelectTrack} />} />
-            <Route path="/discover" element={<Discover onSelectTrack={handleSelectTrack} />} />
-            <Route path="/search" element={<Search />} />
-            <Route path="/profile" element={<Profile onSelectTrack={handleSelectTrack} />} />
-            <Route
-              path="/player"
-              element={
-                <Player
-                  currentTrack={currentTrack}
-                  isPlaying={isPlaying}
-                  setIsPlaying={setIsPlaying}
-                />
-              }
-            />
-          </Routes>
-        </main>
+      <div className="min-h-screen bg-black flex items-center justify-center p-0 sm:p-4">
+        {/* Container Smartphone sem barras de rolagem visíveis */}
+        <div className="w-full max-w-md h-screen sm:h-[844px] bg-[#050507] sm:rounded-[40px] border-0 sm:border-[8px] border-[#1F1F28] relative overflow-hidden flex flex-col shadow-2xl">
+          <main className="flex-1 overflow-y-auto no-scrollbar">
+            <Routes>
+              <Route path="/" element={<Home onSelectTrack={handleSelectTrack} />} />
+              <Route path="/discover" element={<Discover onSelectTrack={handleSelectTrack} />} />
+              <Route path="/search" element={<Search onSelectTrack={handleSelectTrack} />} />
+              <Route path="/collections" element={<Profile />} />
+              <Route path="/raw-plus" element={<Profile />} />
+              <Route path="/profile" element={<Profile />} />
+            </Routes>
+          </main>
 
-        <MiniPlayer
-          currentTrack={currentTrack}
-          isPlaying={isPlaying}
-          setIsPlaying={setIsPlaying}
-        />
-        <BottomNav />
+          <MiniPlayer
+            currentTrack={currentTrack}
+            isPlaying={isPlaying}
+            setIsPlaying={setIsPlaying}
+          />
+          <BottomNav />
+        </div>
       </div>
     </Router>
   );

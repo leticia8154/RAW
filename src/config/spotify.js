@@ -15,4 +15,4 @@ export const scopes = [
 
 export const loginUrl = `${authEndpoint}?client_id=${clientId}&redirect_uri=${encodeURIComponent(
   redirectUri
-)}&scope=${encodeURIComponent(scopes.join(" "))}&response_type=code&show_dialog=true`;
+)}&scope=${encodeURIComponent(scopes.join(" "))}&response_type=token&show_dialog=true`;

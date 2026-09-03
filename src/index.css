@@ -2,8 +2,19 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-@layer base {
-  body {
-    @apply bg-raw-bg text-white font-sans antialiased;
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+body {
+  background-color: #050507;
+  color: #FFFFFF;
+  overflow: hidden;
+  user-select: none;
 }
