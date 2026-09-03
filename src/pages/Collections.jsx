@@ -28,11 +28,11 @@ export function Collections() {
 
       <section className="space-y-3">
         <div className="flex items-center gap-2 text-xs font-semibold text-[#A78BFA] uppercase tracking-wider">
-          <Library size={16} /> Playlists Sincronizadas
+          <Library size={16} /> Playlists do Seu Spotify
         </div>
 
         {loading ? (
-          <div className="text-center py-10 text-xs text-gray-500">Carregando suas playlists...</div>
+          <div className="text-center py-10 text-xs text-gray-500">Buscando sua biblioteca do Spotify...</div>
         ) : playlists.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
             {playlists.map((pl) => (
@@ -61,10 +61,7 @@ export function Collections() {
             <ListMusic className="mx-auto text-gray-500" size={32} />
             <div className="space-y-1">
               <p className="text-xs text-gray-400">
-                {token ? "Nenhuma playlist encontrada." : "Spotify desconectado."}
-              </p>
-              <p className="text-[10px] text-gray-500">
-                {token ? "Sua biblioteca está vazia ou privada." : "Conecte sua conta para autorizar o acesso."}
+                {token ? "Nenhuma playlist salva encontrada." : "Spotify desconectado."}
               </p>
             </div>
             {!token && (

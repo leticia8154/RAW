@@ -1,57 +1,63 @@
 import React, { useState, useEffect } from "react";
 import { SlidersHorizontal, Play } from "lucide-react";
 import { getDiscoverRecommendations } from "../services/spotifyService";
-import { MOCK_TRACKS } from "../data/mockData";
 
 export function Discover({ onSelectTrack }) {
-  const [maxPopularity, setMaxPopularity] = useState(20);
+  const [maxPopularity, setMaxPopularity] = useState(25);
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     setLoading(true);
-    getDiscoverRecommendations(maxPopularity).then((data) => {
-      if (data && data.length > 0) {
-        setTracks(data);
-      } else {
-        setTracks(MOCK_TRACKS);
-      }
-      setLoading(false);
-    });
+
+    const timer = setTimeout(() => {
+      getDiscoverRecommendations(maxPopularity).then((data) => {
+        if (isMounted) {
+          setTracks(data || []);
+          setLoading(false);
+        }
+      });
+    }, 200);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, [maxPopularity]);
 
   return (
     <div className="p-4 pb-36 space-y-6">
       <header className="pt-2">
         <h1 className="text-2xl font-bold font-title text-white">Descobrir</h1>
-        <p className="text-xs text-gray-400">Filtre o underground no seu nível de pureza.</p>
+        <p className="text-xs text-gray-400">Filtre o underground baseado no seu perfil Spotify.</p>
       </header>
 
-      {/* Controle de Filtro de Popularidade */}
+      {/* Slider de Popularidade */}
       <section className="bg-[#141419] border border-[#1F1F28] rounded-2xl p-4 space-y-3">
         <div className="flex justify-between items-center text-xs">
           <span className="font-semibold text-[#A78BFA] flex items-center gap-1.5">
             <SlidersHorizontal size={14} /> Popularidade Máxima
           </span>
-          <span className="font-mono text-white bg-[#1F1F28] px-2.5 py-0.5 rounded-full text-[11px]">
+          <span className="font-mono text-white bg-[#1F1F28] px-2.5 py-0.5 rounded-full text-[11px] border border-[#A78BFA]/30">
             Até {maxPopularity}%
           </span>
         </div>
         <input
           type="range"
           min="5"
-          max="50"
+          max="60"
           value={maxPopularity}
           onChange={(e) => setMaxPopularity(Number(e.target.value))}
           className="w-full accent-[#A78BFA] bg-[#1F1F28] h-1.5 rounded-lg appearance-none cursor-pointer"
         />
       </section>
 
-      {/* Lista Recomendada do Seu Spotify */}
+      {/* Lista Dinâmica */}
       <section className="space-y-3">
         {loading ? (
-          <div className="text-center py-10 text-xs text-gray-500">Buscando algoritmos do seu Spotify...</div>
-        ) : (
+          <div className="text-center py-10 text-xs text-gray-500">Recalculando nível underground...</div>
+        ) : tracks.length > 0 ? (
           tracks.map((track) => (
             <div
               key={track.id}
@@ -73,6 +79,10 @@ export function Discover({ onSelectTrack }) {
               </div>
             </div>
           ))
+        ) : (
+          <div className="text-center py-10 text-xs text-gray-500">
+            Nenhuma música encontrada neste nível de popularidade. Aumente o slider.
+          </div>
         )}
       </section>
     </div>
